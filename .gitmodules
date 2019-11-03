@@ -1,0 +1,6 @@
+[submodule "cbase"]
+	path = cbase
+	url = git@github.com:Gwarks/cbase.git
+[submodule "sub/cbase"]
+	path = sub/cbase
+	url = https://github.com/Gwarks/cbase.git
