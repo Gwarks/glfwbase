@@ -17,5 +17,6 @@ MainState* main_init();
 GLuint* main_glGenBuffers(GLsizei);
 GLuint* main_glCreateShader(GLenum,const GLchar* const*);
 GLuint* main_glCreateProgram(unsigned int,...);
+GLuint* main_glGenTextures(GLsizei);
 
 #endif

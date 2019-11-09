@@ -46,7 +46,7 @@ GLuint* main_glCreateShader(GLenum shaderType,const GLchar* const* code)
 
 void main_glCreateProgram_gc(GLuint* program)
 {
-  glDeleteShader(*program);
+  glDeleteProgram(*program);
   #ifdef DEBUG
   printf("deleted program at %p\n",program);
   #endif
@@ -72,7 +72,7 @@ void main_glGenTextures_gc(GLuint* textures)
   for(GLuint* p=textures;*p;p++)n++;
   glDeleteBuffers(n,textures);
   #ifdef DEBUG
-  printf("deleted %x buffers at %p\n",n,textures);
+  printf("deleted %x textures at %p\n",n,textures);
   #endif
 }
 
@@ -82,7 +82,7 @@ GLuint* main_glGenTextures(GLsizei n)
   textures[n]=0;
   glGenTextures(n,textures);
   #ifdef DEBUG
-  printf("created %x tetures at %p\n",n,textures);
+  printf("created %x textures at %p\n",n,textures);
   #endif
   return textures;
 }
@@ -92,10 +92,24 @@ static void error_callback(int error, const char* description)
     printf("ERROR(%d) %s\n",error, description);
 }
 
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  printf(  "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
+
 int main(void)
 {
-  glfwSetErrorCallback(error_callback);
   GLFWwindow* window;
+  glfwSetErrorCallback(error_callback);
   if(!glfwInit()) return -1;
   glfwWindowHint(GLFW_MAXIMIZED,GLFW_TRUE);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
@@ -108,6 +122,8 @@ int main(void)
   }
   glfwMakeContextCurrent(window);
   gladLoadGL();
+  glEnable(GL_DEBUG_OUTPUT);
+  glDebugMessageCallback( MessageCallback, 0 );
   glfwSwapInterval(1);
   MainState* ms=main_init();
   while(!glfwWindowShouldClose(window))

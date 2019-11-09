@@ -25,11 +25,14 @@ static const char* vertex_shader_text =
 "}\n";
 
 static const char* fragment_shader_text =
-"#version 110\n"
+"#version 130\n"
 "varying vec3 color;\n"
+"uniform isampler2D myTextureSampler;\n"
 "void main()\n"
 "{\n"
-"    gl_FragColor = vec4(color, 1.0);\n"
+"int i=3;i=(i<<2)&8;\n"
+"    gl_FragColor = vec4(vec3(float(texture(myTextureSampler,color.gb).r/255.)),0.0);\n"
+"    gl_FragColor += vec4(color, 1.0);\n"
 "}\n";
 
 char* main_setup()
@@ -42,6 +45,7 @@ GC_BLOCK_START(TestState)
   GLuint* vertex_shader;
   GLuint* fragment_shader;
   GLuint* program;
+  GLuint* textures;
 GC_BLOCK_CENTER
   GLint mvp_location;
 GC_BLOCK_END
@@ -55,7 +59,22 @@ void render(TestState* ts,float w,float h,double t)
   mat4x4_mul(mvp,p,m);
   glUseProgram(ts->program[0]);
   glUniformMatrix4fv(ts->mvp_location,1,GL_FALSE,(const GLfloat*)mvp);
+  glBindTexture(GL_TEXTURE_2D,ts->textures[0]);
   glDrawArrays(GL_TRIANGLES,0,3);
+}
+
+GLubyte* genXORbitmap()
+{
+  GLubyte* data=gc_new(0,256*256*sizeof(GLubyte),0);
+  GLubyte* p=data;
+  for(int y=0;y<256;y++)
+  {
+    for(int x=0;x<256;x++)
+    {
+      *(p++)=x^y;
+    }
+  }
+  return data;
 }
 
 MainState* main_init()
@@ -68,6 +87,11 @@ MainState* main_init()
   ts->buffers=main_glGenBuffers(1);
   glBindBuffer(GL_ARRAY_BUFFER,ts->buffers[0]);
   glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
+  ts->textures=main_glGenTextures(1);
+  glBindTexture(GL_TEXTURE_2D,ts->textures[0]);
+  glTexImage2D(GL_TEXTURE_2D,0,GL_R8UI,256,256,0,GL_RED_INTEGER,GL_UNSIGNED_BYTE,genXORbitmap());
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
   ts->vertex_shader=main_glCreateShader(GL_VERTEX_SHADER,&vertex_shader_text);
   ts->fragment_shader=main_glCreateShader(GL_FRAGMENT_SHADER,&fragment_shader_text);
   ts->program=main_glCreateProgram(2,ts->vertex_shader,ts->fragment_shader);
