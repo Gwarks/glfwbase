@@ -7,8 +7,8 @@ clean:
 glad/glad.o: glad/glad.c
 	gcc -c -o $@ $^
 
-out/bin_font.o: bin/VGA-ROM.F08
-	ld -r -b binary -o out/bin_font.o bin/VGA-ROM.F08
+out/binary.o: bin/VGA-ROM.F08 bin/VGA.vertex-shader bin/VGA.fragment-shader
+	ld -r -b binary -o $@ $^
 
 out/%.o: src/%.c
 	gcc -c -o $@ $^
@@ -28,7 +28,7 @@ subdate:
 sub/cbase/out/lib.a:
 	make -C sub/cbase lib
 
-out/test: src/test.c out/debug.a sub/cbase/out/lib.a out/bin_font.o
+out/test: src/test.c out/debug.a sub/cbase/out/lib.a out/binary.o
 	gcc `pkg-config --cflags glfw3` -o $@ $^ -lGL `pkg-config --static --libs glfw3`
 
 glad:

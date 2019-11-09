@@ -15,7 +15,7 @@ GC_BLOCK_END
 char* main_setup();
 MainState* main_init();
 GLuint* main_glGenBuffers(GLsizei);
-GLuint* main_glCreateShader(GLenum,const GLchar* const*);
+GLuint* main_glCreateShader(GLenum,const GLchar*,const GLint);
 GLuint* main_glCreateProgram(unsigned int,...);
 GLuint* main_glGenTextures(GLsizei);
 

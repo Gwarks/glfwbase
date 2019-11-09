@@ -1,39 +1,23 @@
 #include "main.h"
 #include "linmath.h"
 
+extern GLubyte _binary_bin_VGA_ROM_F08_start;
+extern char _binary_bin_VGA_vertex_shader_start;
+extern char _binary_bin_VGA_vertex_shader_end;
+extern char _binary_bin_VGA_fragment_shader_start;
+extern char _binary_bin_VGA_fragment_shader_end;
+
 static const struct
 {
     float x, y;
-    float r, g, b;
-} vertices[3] =
+    float u, v;
+} vertices[] =
 {
-    { -0.6f, -0.4f, 1.f, 0.f, 0.f },
-    {  0.6f, -0.4f, 0.f, 1.f, 0.f },
-    {   0.f,  0.6f, 0.f, 0.f, 1.f }
+    { -0.7f,  0.7f, 0.f, 0.f },
+    {  0.7f,  0.7f, 1.f, 0.f },
+    { -0.7f, -0.7f, 0.f, 1.f },
+    {  0.7f, -0.7f, 1.f, 1.f }
 };
-
-static const char* vertex_shader_text =
-"#version 110\n"
-"uniform mat4 MVP;\n"
-"attribute vec3 vCol;\n"
-"attribute vec2 vPos;\n"
-"varying vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-"    color = vCol;\n"
-"}\n";
-
-static const char* fragment_shader_text =
-"#version 130\n"
-"varying vec3 color;\n"
-"uniform isampler2D myTextureSampler;\n"
-"void main()\n"
-"{\n"
-"int i=3;i=(i<<2)&8;\n"
-"    gl_FragColor = vec4(vec3(float(texture(myTextureSampler,color.gb).r/255.)),0.0);\n"
-"    gl_FragColor += vec4(color, 1.0);\n"
-"}\n";
 
 char* main_setup()
 {
@@ -60,26 +44,12 @@ void render(TestState* ts,float w,float h,double t)
   glUseProgram(ts->program[0]);
   glUniformMatrix4fv(ts->mvp_location,1,GL_FALSE,(const GLfloat*)mvp);
   glBindTexture(GL_TEXTURE_2D,ts->textures[0]);
-  glDrawArrays(GL_TRIANGLES,0,3);
-}
-
-GLubyte* genXORbitmap()
-{
-  GLubyte* data=gc_new(0,256*256*sizeof(GLubyte),0);
-  GLubyte* p=data;
-  for(int y=0;y<256;y++)
-  {
-    for(int x=0;x<256;x++)
-    {
-      *(p++)=x^y;
-    }
-  }
-  return data;
+  glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
 
 MainState* main_init()
 {
-  GLint vpos_location,vcol_location;
+  GLint vpos_location,vuv_location;
   TestState* ts=GC_NEW_BLOCK(TestState);
   MainState* ms=GC_NEW_BLOCK(MainState);
   ms->render=(MainRender)&render; 
@@ -89,18 +59,20 @@ MainState* main_init()
   glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
   ts->textures=main_glGenTextures(1);
   glBindTexture(GL_TEXTURE_2D,ts->textures[0]);
-  glTexImage2D(GL_TEXTURE_2D,0,GL_R8UI,256,256,0,GL_RED_INTEGER,GL_UNSIGNED_BYTE,genXORbitmap());
+  glTexImage2D(GL_TEXTURE_2D,0,GL_R8UI,8,256,0,GL_RED_INTEGER,GL_UNSIGNED_BYTE,&_binary_bin_VGA_ROM_F08_start);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-  ts->vertex_shader=main_glCreateShader(GL_VERTEX_SHADER,&vertex_shader_text);
-  ts->fragment_shader=main_glCreateShader(GL_FRAGMENT_SHADER,&fragment_shader_text);
+  ts->vertex_shader=main_glCreateShader(GL_VERTEX_SHADER,&_binary_bin_VGA_vertex_shader_start,
+       &_binary_bin_VGA_vertex_shader_end-&_binary_bin_VGA_vertex_shader_start);
+  ts->fragment_shader=main_glCreateShader(GL_FRAGMENT_SHADER,&_binary_bin_VGA_fragment_shader_start,
+       &_binary_bin_VGA_fragment_shader_end-&_binary_bin_VGA_fragment_shader_start);
   ts->program=main_glCreateProgram(2,ts->vertex_shader,ts->fragment_shader);
   ts->mvp_location=glGetUniformLocation(ts->program[0],"MVP");
   vpos_location=glGetAttribLocation(ts->program[0],"vPos");
-  vcol_location=glGetAttribLocation(ts->program[0],"vCol");
+  vuv_location=glGetAttribLocation(ts->program[0],"vUV");
   glEnableVertexAttribArray(vpos_location);
   glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,sizeof(vertices[0]), (void*) 0);
-  glEnableVertexAttribArray(vcol_location);
-  glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,sizeof(vertices[0]), (void*) (sizeof(float) * 2));
+  glEnableVertexAttribArray(vuv_location);
+  glVertexAttribPointer(vuv_location, 2, GL_FLOAT, GL_FALSE,sizeof(vertices[0]), (void*) (sizeof(float) * 2));
   return ms;
 }

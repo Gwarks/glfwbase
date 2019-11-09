@@ -1,0 +1,12 @@
+#version 130
+varying vec2 uv;
+uniform usampler2D vgaROM;
+void main()
+{
+  int x=int(uv.x*128);
+  int y=int(uv.y*128);
+  int c=(x>>3)|((y&0x78)<<1);
+  uvec4 i=texelFetch(vgaROM,ivec2(y&7,c),0);
+  if ((i.r&(0x80u>>(x&7)))>0u)gl_FragColor=vec4(0.5,0.0,0.0,0.0);
+  else gl_FragColor = vec4(1.0,1.0,1.0,0.0);
+}

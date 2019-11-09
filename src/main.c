@@ -32,11 +32,11 @@ void main_glCreateShader_gc(GLuint* shader)
   #endif
 }
 
-GLuint* main_glCreateShader(GLenum shaderType,const GLchar* const* code)
+GLuint* main_glCreateShader(GLenum shaderType,const GLchar* code,const GLint size)
 {
   GLuint* shader=gc_new(0,sizeof(GLuint*),(void (*)(void*))&main_glCreateShader_gc);
   *shader=glCreateShader(shaderType);
-  glShaderSource(*shader,1,code,NULL);
+  glShaderSource(*shader,1,&code,&size);
   glCompileShader(*shader);
   #ifdef DEBUG
   printf("created shader at %p\n",shader);
@@ -105,7 +105,6 @@ MessageCallback( GLenum source,
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
 }
-
 int main(void)
 {
   GLFWwindow* window;
