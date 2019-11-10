@@ -13,13 +13,13 @@ out/binary.o: bin/VGA-ROM.F08 bin/VGA.vertex-shader bin/VGA.fragment-shader
 out/%.o: src/%.c
 	gcc -c -o $@ $^
 
-out/lib.a: out/main.o glad/glad.o
+out/lib.a: out/main.o out/text.o glad/glad.o
 	ar rcs $@ $^
 
 out/%_debug.o: src/%.c
 	gcc -D DEBUG= -c -o $@ $^
 
-out/debug.a: out/main_debug.o glad/glad.o
+out/debug.a: out/main_debug.o out/text_debug.o glad/glad.o
 	ar rcs $@ $^
 
 subdate:
