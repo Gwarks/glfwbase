@@ -1,6 +1,5 @@
 #include "text.h"
 #include "main.h"
-#include "../sub/cbase/src/gc.h"
 #ifdef DEBUG
 #include <stdio.h>
 #endif
@@ -39,22 +38,22 @@ void getFont_gc(void* ptr)
   #endif
 }
 
-Font* getFont()
+Font* getFont(GC gc)
 {
   if(font)return font;
   GLint vpos_location,vuv_location;
-  Font* f=GC_NEW_BLOCK_GC(Font,&getFont_gc);
+  Font* f=GC_NEW_BLOCK_GC(gc,Font,&getFont_gc);
   font=f;
-  f->textures=main_glGenTextures(1);
+  f->textures=main_glGenTextures(gc,1);
   glBindTexture(GL_TEXTURE_2D,f->textures[0]);
   glTexImage2D(GL_TEXTURE_2D,0,GL_R8UI,8,256,0,GL_RED_INTEGER,GL_UNSIGNED_BYTE,&_binary_bin_VGA_ROM_F08_start);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-  f->vertex_shader=main_glCreateShader(GL_VERTEX_SHADER,&_binary_bin_VGA_vertex_shader_start,
+  f->vertex_shader=main_glCreateShader(gc,GL_VERTEX_SHADER,&_binary_bin_VGA_vertex_shader_start,
        &_binary_bin_VGA_vertex_shader_end-&_binary_bin_VGA_vertex_shader_start);
-  f->fragment_shader=main_glCreateShader(GL_FRAGMENT_SHADER,&_binary_bin_VGA_fragment_shader_start,
+  f->fragment_shader=main_glCreateShader(gc,GL_FRAGMENT_SHADER,&_binary_bin_VGA_fragment_shader_start,
        &_binary_bin_VGA_fragment_shader_end-&_binary_bin_VGA_fragment_shader_start);
-  f->program=main_glCreateProgram(2,f->vertex_shader,f->fragment_shader);
+  f->program=main_glCreateProgram(gc,2,f->vertex_shader,f->fragment_shader);
   f->mvp_location=glGetUniformLocation(f->program[0],"MVP");
   vpos_location=glGetAttribLocation(f->program[0],"vPos");
   vuv_location=glGetAttribLocation(f->program[0],"vUV");
@@ -68,10 +67,10 @@ Font* getFont()
   return f;
 }
 
-void* text_createPannel(unsigned int w,unsigned int h)
+void* text_createPannel(GC gc,unsigned int w,unsigned int h)
 {
-  Screen* s=GC_NEW_BLOCK(Screen);
-  s->font=getFont();
+  Screen* s=GC_NEW_BLOCK(gc,Screen);
+  s->font=getFont(gc);
   s->w=w;
   s->h=h;
   return s;

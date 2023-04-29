@@ -12,11 +12,11 @@ GC_BLOCK_CENTER
   MainRender render;
 GC_BLOCK_END
 
-char* main_setup();
-MainState* main_init();
-GLuint* main_glGenBuffers(GLsizei);
-GLuint* main_glCreateShader(GLenum,const GLchar*,const GLint);
-GLuint* main_glCreateProgram(unsigned int,...);
-GLuint* main_glGenTextures(GLsizei);
+char* main_setup(GC);
+MainState* main_init(GC);
+GLuint* main_glGenBuffers(GC,GLsizei);
+GLuint* main_glCreateShader(GC,GLenum,const GLchar*,const GLint);
+GLuint* main_glCreateProgram(GC,unsigned int,...);
+GLuint* main_glGenTextures(GC,GLsizei);
 
 #endif

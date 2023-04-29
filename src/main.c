@@ -13,9 +13,9 @@ void main_glGenBuffers_gc(GLuint* buffers)
   #endif
 }
 
-GLuint* main_glGenBuffers(GLsizei n)
+GLuint* main_glGenBuffers(GC gc,GLsizei n)
 {
-  GLuint* buffers=gc_new(0,sizeof(GLuint*)*(n+1),(void (*)(void*))&main_glGenBuffers_gc);
+  GLuint* buffers=gc_new(gc,0,sizeof(GLuint*)*(n+1),(void (*)(void*))&main_glGenBuffers_gc);
   buffers[n]=0;
   glGenBuffers(n,buffers);
   #ifdef DEBUG
@@ -32,9 +32,9 @@ void main_glCreateShader_gc(GLuint* shader)
   #endif
 }
 
-GLuint* main_glCreateShader(GLenum shaderType,const GLchar* code,const GLint size)
+GLuint* main_glCreateShader(GC gc,GLenum shaderType,const GLchar* code,const GLint size)
 {
-  GLuint* shader=gc_new(0,sizeof(GLuint*),(void (*)(void*))&main_glCreateShader_gc);
+  GLuint* shader=gc_new(gc,0,sizeof(GLuint*),(void (*)(void*))&main_glCreateShader_gc);
   *shader=glCreateShader(shaderType);
   glShaderSource(*shader,1,&code,&size);
   glCompileShader(*shader);
@@ -52,9 +52,9 @@ void main_glCreateProgram_gc(GLuint* program)
   #endif
 }
 
-GLuint* main_glCreateProgram(unsigned int n,...)
+GLuint* main_glCreateProgram(GC gc,unsigned int n,...)
 {
-  GLuint* program=gc_new(0,sizeof(GLuint*),(void (*)(void*))&main_glCreateProgram_gc);
+  GLuint* program=gc_new(gc,0,sizeof(GLuint*),(void (*)(void*))&main_glCreateProgram_gc);
   *program=glCreateProgram();
   va_list progs;
   va_start(progs,n); 
@@ -76,9 +76,9 @@ void main_glGenTextures_gc(GLuint* textures)
   #endif
 }
 
-GLuint* main_glGenTextures(GLsizei n)
+GLuint* main_glGenTextures(GC gc,GLsizei n)
 {
-  GLuint* textures=gc_new(0,sizeof(GLuint*)*(n+1),(void (*)(void*))&main_glGenTextures_gc);
+  GLuint* textures=gc_new(gc,0,sizeof(GLuint*)*(n+1),(void (*)(void*))&main_glGenTextures_gc);
   textures[n]=0;
   glGenTextures(n,textures);
   #ifdef DEBUG
@@ -109,34 +109,36 @@ int main(void)
 {
   GLFWwindow* window;
   glfwSetErrorCallback(error_callback);
-  if(!glfwInit()) return -1;
+  if(!glfwInit())return -1;
+  GC gc=gc_create();
   glfwWindowHint(GLFW_MAXIMIZED,GLFW_TRUE);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  window=glfwCreateWindow(1024,512,main_setup(),NULL,NULL);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,2);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,0);
+  window=glfwCreateWindow(1024,512,main_setup(gc),NULL,NULL);
   if(!window)
   {
+    gc_destroy(gc);
     glfwTerminate();
     return -1;
   }
   glfwMakeContextCurrent(window);
   gladLoadGL();
   glEnable(GL_DEBUG_OUTPUT);
-  glDebugMessageCallback( MessageCallback, 0 );
+  glDebugMessageCallback( MessageCallback,0);
   glfwSwapInterval(1);
-  MainState* ms=main_init();
+  MainState* ms=main_init(gc);
   while(!glfwWindowShouldClose(window))
   {
     glClear(GL_COLOR_BUFFER_BIT);
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
-    if(width>height)ms->render(ms->data,width / (float) height,1.0,glfwGetTime());
-    else ms->render(ms->data,1.0,height / (float) width,glfwGetTime());
+    if(width>height)ms->render(ms->data,width/(float)height,1.0,glfwGetTime());
+    else ms->render(ms->data,1.0,height/(float)width,glfwGetTime());
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
-  gc_sweep();
+  gc_destroy(gc);
   glfwTerminate();
   return 0;
 }

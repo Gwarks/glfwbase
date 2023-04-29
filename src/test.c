@@ -10,9 +10,9 @@ static const TextVertex vertices[] =
     {  0.7f, -0.7f, 1.f, 1.f }
 };
 
-char* main_setup()
+char* main_setup(GC gc)
 {
-  return gc_new_string("Test GL");
+  return gc_new_string(gc,"Test GL");
 }
 
 GC_BLOCK_START(TestState)
@@ -32,15 +32,15 @@ void render(TestState* ts,float w,float h,double t)
   glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 }
 
-MainState* main_init()
+MainState* main_init(GC gc)
 {
-  TestState* ts=GC_NEW_BLOCK(TestState);
-  MainState* ms=GC_NEW_BLOCK(MainState);
+  TestState* ts=GC_NEW_BLOCK(gc,TestState);
+  MainState* ms=GC_NEW_BLOCK(gc,MainState);
   ms->render=(MainRender)&render; 
   ms->data=ts;
-  ts->buffers=main_glGenBuffers(1);
+  ts->buffers=main_glGenBuffers(gc,1);
   glBindBuffer(GL_ARRAY_BUFFER,ts->buffers[0]);
   glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
-  ts->text=text_createPannel(32,32);
+  ts->text=text_createPannel(gc,32,32);
   return ms;
 }

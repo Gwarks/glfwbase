@@ -8,7 +8,7 @@ glad/glad.o: glad/glad.c
 	gcc -c -o $@ $^
 
 out/binary.o: bin/VGA-ROM.F08 bin/VGA.vertex-shader bin/VGA.fragment-shader
-	ld -r -b binary -o $@ $^
+	ld -z noexecstack -r -b binary -o $@ $^
 
 out/%.o: src/%.c
 	gcc -c -o $@ $^
@@ -21,6 +21,10 @@ out/%_debug.o: src/%.c
 
 out/debug.a: out/main_debug.o out/text_debug.o glad/glad.o
 	ar rcs $@ $^
+
+subinit:
+	git submodule init
+	git submodule update
 
 subdate:
 	git submodule foreach git pull origin master
