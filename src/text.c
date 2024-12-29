@@ -44,7 +44,7 @@ Font* getFont(GC gc)
   GLint vpos_location,vuv_location;
   Font* f=GC_NEW_BLOCK_GC(gc,Font,&getFont_gc);
   font=f;
-  f->textures=main_glGenTextures(gc,1);
+  f->textures=main_glGenTextures(gc,2);
   glBindTexture(GL_TEXTURE_2D,f->textures[0]);
   glTexImage2D(GL_TEXTURE_2D,0,GL_R8UI,8,256,0,GL_RED_INTEGER,GL_UNSIGNED_BYTE,&_binary_bin_VGA_ROM_F08_start);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
